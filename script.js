@@ -261,7 +261,8 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
     currentNoteOriginalColorContainer.style.display = 'none';
   }
   // Set this variable to any image source
-  let IMAGE_SRC = '';
+  const params = new URLSearchParams(window.location.search);
+  let IMAGE_SRC = params.get('imageSource')
   function setImage(index) {
     const image = new Image();
    // console.log(colorMode)
@@ -270,7 +271,7 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
     } else if (colorMode === 'shifted') {
         image.src = images[index].filenameShifted;
     }
-    //console.log(IMAGE_SRC)
+    console.log(IMAGE_SRC)
     
     image.onload = function() {
         let maxWidth = canvas.width;

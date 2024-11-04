@@ -1,0 +1,7 @@
+services:
+
+  imagetool:
+    build: .
+    image: thomasve/imagetool:0.1.1
+    ports:
+      - 8099:80

@@ -1,6 +1,23 @@
 const playPentatonic = false;
 
 window.onload = function() {
+    // Websocket for sending image data
+    const socket = new WebSocket('ws://localhost:8000/ws/send_image_data');
+
+    // Event: Connection opened
+    socket.addEventListener('open', () => {
+        console.log('WebSocket connection established');
+    });
+
+    // Event: Connection closed
+    socket.addEventListener('close', () => {
+        console.log('WebSocket connection closed');
+    });
+
+    // Event: WebSocket error
+    socket.addEventListener('error', (error) => {
+        console.error('WebSocket error:', error);
+    });
 
     let images = [
         {
@@ -306,6 +323,7 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
   //setImage()
   // Add a function to the mousemove event to get pixel data
   // NOTE: You should probably debounce this
+  
   canvas.onmousemove = function(e) {
     let mouseX = e.offsetX;
     let mouseY = e.offsetY;
@@ -347,6 +365,20 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
     currentChordContainer.innerHTML = `${chord.note} ${chord.quality}`;
     currentChordRootContainer.innerHTML = `${chord.noteExact}`;
     currentColorFrame.style.left = `${(mostSimilarColorIndex * 20)-6}px`;
+
+    console.log('socket.readyState: ' + socket.readyState);
+
+    if (socket.readyState === WebSocket.OPEN) {
+        const imageData = {
+            position: {
+                x: mouseX,
+                y: mouseY
+            },
+            color: currentRGBA
+        }
+        console.log(imageData);
+        socket.send(JSON.stringify(imageData));
+    }
     }  
 }
 

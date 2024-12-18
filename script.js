@@ -2,7 +2,7 @@ const playPentatonic = false;
 
 window.onload = function() {
     // Websocket for sending image data
-    const socket = new WebSocket('ws://localhost:8000/ws/send_image_data');
+    const socket = new WebSocket('ws://localhost:8000/ws/send/image-processor/test/test');
 
     // Event: Connection opened
     socket.addEventListener('open', () => {

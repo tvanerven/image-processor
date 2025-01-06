@@ -374,7 +374,11 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
                 x: mouseX,
                 y: mouseY
             },
-            color: currentRGBA
+            color: {
+                r: colorData[0],
+                g: colorData[1],
+                b: colorData[2],
+            },
         }
         console.log(imageData);
         socket.send(JSON.stringify(imageData));

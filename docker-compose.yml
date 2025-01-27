@@ -2,6 +2,8 @@ services:
 
   imagetool:
     build: .
-    image: thomasve/imagetool:0.1.1
+    image: thomasve/imagetool:fifths
+    volumes:
+      - .:/usr/share/nginx/html
     ports:
       - 8099:80

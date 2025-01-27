@@ -1,4 +1,5 @@
 const playPentatonic = false;
+const playFifths = true;
 
 window.onload = function() {
 
@@ -206,6 +207,13 @@ window.onload = function() {
             width: 793,
             height: 746,
         },
+        {
+            filenameOriginal: 'input_images/circleoffifths.png',
+            filenameShifted: 'input_images/circleoffifths.png',
+            title: 'Circle of Fifths',
+            width: 600,
+            height: 600,
+        }
     ]
 
 let colorMode = 'original';
@@ -254,11 +262,23 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
   const currentNoteOriginalColorContainer = document.getElementById('currentNoteOriginalColorContainer');
   const colorVectorContainer = document.getElementById('colorVectorContainer');
 
+  //fifths HTML
+  const currentFifthsColorFrame = document.getElementById('currentFifthsColorFrame');
+  const currentFifthsNoteContainer = document.getElementById('currentFifthsContainer');
+  const currentFifthsNoteOriginalColorContainer = document.getElementById('currentFifthsNoteOriginalColorContainer');
+  const fifthsColorVectorContainer = document.getElementById('fifthsColorVectorContainer');
+
   if (!playPentatonic) {
     currentPentatonicColorFrame.style.display = 'none';
     colorVectorContainer.style.display = 'none';
     currentNoteContainer.style.display = 'none';
     currentNoteOriginalColorContainer.style.display = 'none';
+  }
+  if (!playFifths) {
+    currentFifthsColorFrame.style.display = 'none';
+    fifthsColorVectorContainer.style.display = 'none';
+    currentFifthsNoteContainer.style.display = 'none';
+    currentFifthsNoteOriginalColorContainer.style.display = 'none';
   }
   // Set this variable to any image source
   const params = new URLSearchParams(window.location.search);
@@ -271,7 +291,6 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
     } else if (colorMode === 'shifted') {
         image.src = images[index].filenameShifted;
     }
-    console.log(IMAGE_SRC)
     
     image.onload = function() {
         let maxWidth = canvas.width;
@@ -323,20 +342,38 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
     ]
     colorVectorContainer.innerHTML = colorVector.map(c => `<span style="background-color: rgb(${c[0]}, ${c[1]}, ${c[2]}); min-width: 20px; min-height: 20px; display: inline-block;"></span>`).join('');
     let pentatonicVector = colorVector.map(c => ({'mostSimilarColor': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).closestColor, 'originalColor': [c[0], c[1], c[2]], 'mostSimilarColorIndex': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex, 'frequency': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].frequency, 'noteExact': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].noteExact}));
+    let fifthsVector = colorVector.map(c => `<span style="background-color: rgb(${c[0]}, ${c[1]}, ${c[2]}); min-width: 20px; min-height: 20px; display: inline-block;"></span>`).join('');
     //console.table(pentatonicVector);
 
     if (playPentatonic) {  
         pentatonicPlayer.playNotes(pentatonicVector);
     }
-    let mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).closestColor;
-    let mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).colorIndex;
-    let currentRGBA = `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, ${colorData[3]})`;
-    let chord = chords_used[mostSimilarColorIndex]
+    if (playFifths) {
+        fifthsPlayer.playChord(fifthsVector);
+    }
+
+    let mostSimilarColor, mostSimilarColorIndex, currentRGBA, chord
+
+    if (playFifths) {
+        mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).closestColor;
+        mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).colorIndex;
+        chord = fifths_in_key[mostSimilarColorIndex];
+        console.log("chord", chord)
+        fifthsPlayer.playChord(chord);
+    } else {
+        mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).closestColor;
+        mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).colorIndex;
+        chord = chords_used[mostSimilarColorIndex];
+        chordPlayer.playChord(chord);
+    }
     
     if (colorData[0] != 0 && colorData[1] != 0 && colorData[2] != 0 && colorData[3] != 0) {
         chordPlayer.playChord(chord);
     }
     
+    if (colorData[0] != 0 && colorData[1] != 0 && colorData[2] != 0 && colorData[3] != 0) {
+        fifthsPlayer.playChord(chord);
+    }
 
 
     currentHoverColorContainer.style.backgroundColor = currentRGBA;
@@ -580,6 +617,136 @@ class ChordPlayer {
       }, 50); // Short delay to ensure the current playing stops
     }
   }
+
+class FifthsPlayer {
+    constructor(audioContext, reverb) {
+      this.audioContext = audioContext;
+      this.reverb = reverb;
+      this.isPlaying = false;
+      this.currentFrequencies = null; // Store the current chord
+      this.currentChord = null; // Store the current chord
+      this.keepPlaying = false; // Flag to control the playback loop
+      this.soundStyle = 'analog'; // set to either analog or digital
+    }
+  
+    playChord(chord) {
+
+        this.currentFrequencies = chord.frequencies; // Store the current chord
+        this.currentChord = chord; // Store the current chord
+        //this.playCurrentChord(); // Start playing the current chord
+        if (!this.isPlaying) {
+        //this.keepPlaying = true; // Set the flag to keep playing the current chord
+        this.playCurrentChord(); // Start playing the current chord
+        }
+    }
+  
+    playCurrentChord() {
+        if (this.soundStyle == 'digital') {
+            if (!this.currentFrequencies || !this.keepPlaying) {
+            // If there are no frequencies to play or the flag is false, stop playing
+            this.isPlaying = false;
+            return;
+            }
+
+            this.isPlaying = true;
+            const now = this.audioContext.currentTime;
+            const attackTime = 0.1;
+            const decayTime = 0;
+            const sustainLevel = 1;
+            const releaseTime = .01;
+            const noteLength = 1; // Length of each note
+
+            this.currentFrequencies.forEach(frequency => {
+                const oscillator = this.audioContext.createOscillator();
+                oscillator.type = 'triangle';
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.reverb);
+                this.reverb.connect(this.audioContext.destination);
+
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(1, now + attackTime);
+                gainNode.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
+
+                oscillator.frequency.setValueAtTime(frequency, now);
+                oscillator.start(now);
+
+                gainNode.gain.setValueAtTime(sustainLevel, now + noteLength - releaseTime);
+                gainNode.gain.linearRampToValueAtTime(0, now + noteLength);
+                oscillator.stop(now + noteLength);
+            });
+    
+            // Schedule the next play after the current play is finished
+            setTimeout(() => {
+                this.isPlaying = false;
+                // If keepPlaying is still true, play the chord again
+                if (this.keepPlaying) {
+                this.playCurrentChord();
+                }
+            }, noteLength * 1000); // Convert seconds to milliseconds
+        } else if (this.soundStyle == 'analog') {
+            
+            if (this.isPlaying !== true) {
+                let chordQuality = '';
+                let filePath = '';
+                let filename = '';
+                let noteName = '';
+                if (this.playChords) {
+                    filePath = 'piano_triads/';
+                } else {
+                    filePath = 'piano_notes/';
+                }
+                
+                
+                switch (this.currentChord.quality) {
+                    case 'diminished':
+                        chordQuality = 'dim';
+                        break;
+                    case 'major':
+                        chordQuality = 'maj';
+                        break;
+                    case 'minor':
+                        chordQuality = 'min';
+                        break;
+                }  
+                if (this.playChords) {
+                    if (!this.currentChord ) {
+                        console.error('currentChord or currentChord.note is undefined', this.currentChord);
+                    } else {
+                        noteName = this.currentChord.note.replaceAll('#', 's');
+                        filename = `${noteName}_${chordQuality}_${this.currentChord.octave}_0.wav`;
+                    }
+                } else {
+                    if (!this.currentChord.note) {
+                        console.error('currentChord or currentChord.note is undefined 2', this.currentChord);
+                    } else {
+                        noteName = this.currentChord.note.replaceAll('#', 's');
+                        filename = `${noteName}${this.currentChord.octave}.mp3`;
+                        // console.log(filename);
+                    }
+                }
+                
+                let audio = new Audio(filePath + filename);
+                audio.volume = 0.3;
+                audio.play();
+                let isPlayingMuter = this.isPlaying;
+                setTimeout(()=>{
+                    this.isPlaying = false;
+                }, 2250)
+                this.isPlaying = true;
+            }
+        }
+    }
+  
+    // Method to stop playing the current chord and prepare for a new one
+    setNewChord(frequencies) {
+      this.keepPlaying = false; // Stop the current playback loop
+      setTimeout(() => {
+        this.playChord(frequencies); // Play the new chord after a short delay
+      }, 50); // Short delay to ensure the current playing stops
+    }
+  }
   
   
   // Usage
@@ -587,6 +754,7 @@ class ChordPlayer {
   const reverb = createReverb(audioContext);
   const chordPlayer = new ChordPlayer(audioContext, reverb);
   const pentatonicPlayer = new PentatonicPlayer(audioContext, reverb);
+  const fifthsPlayer = new FifthsPlayer(audioContext, reverb);
   
   function createReverb(audioContext) {
     const reverb = audioContext.createConvolver();
@@ -668,6 +836,23 @@ let pentatonicColors = [
     [255, 255, 255]
 ];
 
+
+let circleOfFifths = [
+    [255, 0, 0],
+    [255, 165, 0],
+    [255, 255, 0],
+    [0, 255, 0],
+    [0, 255, 255],
+    [0, 0, 255],
+    [128, 0, 128],
+    [255, 192, 203],
+    [255, 20, 147],
+    [147, 112, 219],
+    [75, 0, 130],
+    [72, 61, 139],
+    [47, 79, 79],
+    [70, 130, 180]
+];
 
 // Function to calculate Euclidean distance between two RGB values
 function rgbDistance(rgb1, rgb2) {
@@ -862,10 +1047,80 @@ function getPentatonicScaleInKey(key, quality, notesMap) {
 let pentatonic_in_key = getPentatonicScaleInKey('C', 'major', notesMap);
 pentatonic_in_key = trimArray(pentatonic_in_key, 20)
 
+/* let fifthsKeys = {
+    "major": {
+        "C": ["C", "G", "D", "A", "E", "B", "F#"],
+        "C#": ["C#", "G#", "D#", "A#", "E#", "B#", "F##"],
+        "D": ["D", "A", "E", "B", "F#", "C#", "G#"],
+        "D#": ["D#", "A#", "E#", "B#", "F##", "C##", "G##"],
+        "E": ["E", "B", "F#", "C#", "G#", "D#", "A#"],
+        "F": ["F", "C", "G", "D", "A", "E", "B"],
+        "F#": ["F#", "C#", "G#", "D#", "A#", "E#", "B#"],
+        "G": ["G", "D", "A", "E", "B", "F#", "C#"],
+        "G#": ["G#", "D#", "A#", "E#", "B#", "F##", "C##"],
+        "A": ["A", "E", "B", "F#", "C#", "G#", "D#"],
+        "A#": ["A#", "E#", "B#", "F##", "C##", "G##", "D##"],
+        "B": ["B", "F#", "C#", "G#", "D#", "A#", "E#"]
+    },
+    "minor": {
+        "C": ["C", "G", "D", "A", "E", "B", "F#"],
+        "C#": ["C#", "G#", "D#", "A#", "E#", "B#", "F##"],
+        "D": ["D", "A", "E", "B", "F#", "C#", "G#"],
+        "D#": ["D#", "A#", "E#", "B#", "F##", "C##", "G##"],
+        "E": ["E", "B", "F#", "C#", "G#", "D#", "A#"],
+        "F": ["F", "C", "G", "D", "A", "E", "B"],
+        "F#": ["F#", "C#", "G#", "D#", "A#", "E#", "B#"],
+        "G": ["G", "D", "A", "E", "B", "F#", "C#"],
+        "G#": ["G#", "D#", "A#", "E#", "B#", "F##", "C##"],
+        "A": ["A", "E", "B", "F#", "C#", "G#", "D#"],
+        "A#": ["A#", "E#", "B#", "F##", "C##", "G##", "D##"],
+        "B": ["B", "F#", "C#", "G#", "D#", "A#", "E#"]
+    }
+}; */
 
 
+let fifthsKeys = {
+    "major": {
+      "C": ["C", "G", "D", "A", "E", "B", "F#"],
+      "F": ["F", "A#", "D#", "G#", "C#", "F#", "B#"]
+    },
+    "minor": {
+      "A": ["A", "E", "B", "F#", "C#", "G#", "D#"],
+      "D": ["D", "G", "C", "F", "A#", "D#", "G#"]
+    },
+    "colors": {
+      "C": {"RGB": [255, 0, 0]},
+      "G": {"RGB": [255, 165, 0]},
+      "D": {"RGB": [255, 255, 0]},
+      "A": {"RGB": [0, 255, 0]},
+      "E": {"RGB": [0, 255, 255]},
+      "B": {"RGB": [0, 0, 255]},
+      "F#": {"RGB": [128, 0, 128]},
+      "F": {"RGB": [255, 192, 203]},
+      "A#": {"RGB": [255, 20, 147]},
+      "D#": {"RGB": [147, 112, 219]},
+      "G#": {"RGB": [75, 0, 130]},
+      "C#": {"RGB": [72, 61, 139]},
+      "F#": {"RGB": [47, 79, 79]},
+      "B#": {"RGB": [70, 130, 180]}
+    }
+  }
 
-
+/*   let circleOfFifths = [
+    [1,0,254],
+    [102,1,205],
+    [102, 0, 153],
+    [153,1,103],
+    [254,0,1],
+    [255,102,0],
+    [254,254,0],
+    [204,204,0],
+    [0,171,1],
+    [0,254,152],
+    [0,254,152],
+    [0,102,255]
+] */
+  
 
 
 // let preferedKey = prompt('enter the prefered key as a capital letter with sharp sign (if wanted).');
@@ -875,6 +1130,19 @@ pentatonic_in_key = trimArray(pentatonic_in_key, 20)
 let chords_used = getAllChords(notesMap);
 //console.log('chords_used : ', chords_used)
 chords_used = evenlyTrimArray(chords_used, 60);
+
+let fifths_in_key = getFifthsInKey('C', 'major', notesMap);
+fifths_in_key = trimArray(fifths_in_key, 12);
+
+function getFifthsInKey(key, quality, notesMap) {
+    const fifths = [];
+    notesMap.forEach((note, index) => {
+        if (fifthsKeys[quality][key].includes(note.note)) {
+            fifths.push({key: index, note: note.note, frequency: note.frequency, noteExact: note.note_exact});
+        }
+    });
+    return fifths;
+}
 
 
 
@@ -903,10 +1171,21 @@ if (playPentatonic) {
     }
 }
 
+if (playFifths) {
+    let fifthsColorMapContainer = document.getElementById('fifthsColorMapContainer');
+    let chordAsString = '';
+    for (let i in circleOfFifths) {
+        if (chords_used[i].quality === 'major') {
+            chordAsString = chords_used[i].note
+        } else if (chords_used[i].quality === 'minor') {
+            chordAsString = chords_used[i].note.toLowerCase() + 'm'
+        } else if (chords_used[i].quality === 'diminished') {
+            chordAsString = chords_used[i].note + 'dim'
+        }
+        fifthsColorMapContainer.innerHTML += `<div style="position: relative; height: 20px; width: 12px; background-color: rgba(${circleOfFifths[i][0]}, ${circleOfFifths[i][1]}, ${circleOfFifths[i][2]})">
+            <span style="font-size: 8px; min-width: 20px; text-align: center; position: absolute; left: -4px; top: -12px;">${chordAsString}</span>
+        </div>`;
+    }
+}
 
-
-
-
-
-
-    
+console.log("PLaying fifths")

@@ -1,4 +1,50 @@
 const playPentatonic = false;
+const playFifths = true;
+
+import notesMap from './piano_notes.js';
+
+let fifthsKeys = {
+    "major": {
+      "C": ["C", "G", "D", "A", "E", "B", "F#"],
+      "F": ["F", "A#", "D#", "G#", "C#", "F#", "B#"]
+    },
+    "minor": {
+      "A": ["A", "E", "B", "F#", "C#", "G#", "D#"],
+      "D": ["D", "G", "C", "F", "A#", "D#", "G#"]
+    },
+    "colors": {
+      "C": {"RGB": [255, 0, 0]},
+      "G": {"RGB": [255, 165, 0]},
+      "D": {"RGB": [255, 255, 0]},
+      "A": {"RGB": [0, 255, 0]},
+      "E": {"RGB": [0, 255, 255]},
+      "B": {"RGB": [0, 0, 255]},
+      "F#": {"RGB": [128, 0, 128]},
+      "F": {"RGB": [255, 192, 203]},
+      "A#": {"RGB": [255, 20, 147]},
+      "D#": {"RGB": [147, 112, 219]},
+      "G#": {"RGB": [75, 0, 130]},
+      "C#": {"RGB": [72, 61, 139]},
+      "F#": {"RGB": [47, 79, 79]},
+      "B#": {"RGB": [70, 130, 180]}
+    }
+  }
+
+const circleOfFifthsChords = notesMap.filter(note => {
+    return [
+        'G2', 'G3', 'G4', 'G5', 'G6', 
+        'D2', 'D3', 'D4', 'D5', 'D6', 
+        'A2', 'A3', 'A4', 'A6', 'A6', 
+        'F2', 'F3', 'F4', 'F5', 'F6', 
+        'C2', 'C3', 'C4', 'C5', 'C6', 
+        'B2', 'B3', 'B4', 'B5', 'B6',
+        'A#2', 'A#3', 'A#4', 'A#5', 'A#6',
+        'D#2', 'D#3', 'D#4', 'D#5', 'D#6',
+        'G#2', 'G#3', 'G#4', 'G#5', 'G#6',
+        'C#2', 'C#3', 'C#4', 'C#5', 'C#6',
+        'F#2', 'F#3', 'F#4', 'F#5', 'F#6',
+    ].includes(note.note_exact);
+});
 
 window.onload = function() {
     // Websocket for sending image data
@@ -223,6 +269,13 @@ window.onload = function() {
             width: 793,
             height: 746,
         },
+        {
+            filenameOriginal: 'input_images/circleoffifths.png',
+            filenameShifted: 'input_images/circleoffifths.png',
+            title: 'Circle of Fifths',
+            width: 1024,
+            height: 1024,
+        }
     ]
 
 let colorMode = 'original';
@@ -271,12 +324,21 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
   const currentNoteOriginalColorContainer = document.getElementById('currentNoteOriginalColorContainer');
   const colorVectorContainer = document.getElementById('colorVectorContainer');
 
+  // circle of fifths HTML
+  const currentFifthColorFrame = document.getElementById('mostSimilarColorContainer');
+  const currentFifthNoteContainer = document.getElementById('currentChordContainer');
+  const fifthColorVectorContainer = document.getElementById('fifthColorVectorContainer');
+
   if (!playPentatonic) {
     currentPentatonicColorFrame.style.display = 'none';
     colorVectorContainer.style.display = 'none';
     currentNoteContainer.style.display = 'none';
     currentNoteOriginalColorContainer.style.display = 'none';
   }
+  currentFifthColorFrame.style.display = 'none';
+  fifthColorVectorContainer.style.display = 'none';
+  currentFifthNoteContainer.style.display = 'none';
+  //currentFifthNoteOriginalColorContainer.style.display = 'none';
   // Set this variable to any image source
   const params = new URLSearchParams(window.location.search);
   let IMAGE_SRC = params.get('imageSource')
@@ -340,18 +402,24 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
         ctx.getImageData(mouseX+25, mouseY+25, 1, 1).data,
     ]
     colorVectorContainer.innerHTML = colorVector.map(c => `<span style="background-color: rgb(${c[0]}, ${c[1]}, ${c[2]}); min-width: 20px; min-height: 20px; display: inline-block;"></span>`).join('');
+    fifthColorVectorContainer.innerHTML = colorVector.map(c => `<span style="background-color: rgb(${c[0]}, ${c[1]}, ${c[2]}); min-width: 20px; min-height: 20px; display: inline-block;"></span>`).join('');
     let pentatonicVector = colorVector.map(c => ({'mostSimilarColor': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).closestColor, 'originalColor': [c[0], c[1], c[2]], 'mostSimilarColorIndex': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex, 'frequency': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].frequency, 'noteExact': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].noteExact}));
     //console.table(pentatonicVector);
+
+    let mostSimilarColor, mostSimilarColorIndex, chord, currentRGBA;
 
     if (playPentatonic) {  
         pentatonicPlayer.playNotes(pentatonicVector);
     }
-    let mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).closestColor;
-    let mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).colorIndex;
-    let currentRGBA = `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, ${colorData[3]})`;
-    let chord = chords_used[mostSimilarColorIndex]
-    
-    if (colorData[0] != 0 && colorData[1] != 0 && colorData[2] != 0 && colorData[3] != 0) {
+    if (playFifths) {
+        mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).closestColor;
+        mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).colorIndex;
+        chord = chords_used[mostSimilarColorIndex];
+        chordPlayer.playChord(chord);
+    } else {
+        mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).closestColor;
+        mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).colorIndex;
+        chord = chords_used[mostSimilarColorIndex];
         chordPlayer.playChord(chord);
     }
     
@@ -704,6 +772,23 @@ let pentatonicColors = [
     [255, 255, 255]
 ];
 
+let circleOfFifths = [
+    [255, 0, 0],
+    [255, 165, 0],
+    [255, 255, 0],
+    [0, 255, 0],
+    [0, 255, 255],
+    [0, 0, 255],
+    [128, 0, 128],
+    [255, 192, 203],
+    [255, 20, 147],
+    [147, 112, 219],
+    [75, 0, 130],
+    [72, 61, 139],
+    [47, 79, 79],
+    [70, 130, 180]
+];
+
 
 // Function to calculate Euclidean distance between two RGB values
 function rgbDistance(rgb1, rgb2) {
@@ -736,7 +821,6 @@ function findMostSimilarRGB(targetRGB, colorArray) {
 
 // Assuming `notesMap` is already populated with your JSON data
 // For example, you might have fetched it like so:
-import notesMap from './piano_notes.js';
 
 let notesInKey = {
     "major": {
@@ -938,11 +1022,3 @@ if (playPentatonic) {
         </div>`;
     }
 }
-
-
-
-
-
-
-
-    

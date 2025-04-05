@@ -280,20 +280,7 @@ window.onload = function() {
 
 let colorMode = 'original';
 let currentImageIndex = 0;
-
-document.getElementById('set-colors-original').addEventListener('click', function() {
-    colorMode = 'original';
-    setImage(currentImageIndex);
-});
-document.getElementById('set-colors-shifted').addEventListener('click', function() {
-    colorMode = 'shifted';
-    setImage(currentImageIndex);
-});
     
-
-
- let imagePickerContainer = document.getElementById('image-picker-container')
-
     for (let i in images) {
         let btn = document.createElement('button');
         btn.style.marginRight = '5px';
@@ -304,40 +291,13 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
             currentImageIndex = i;
             setImage(i);
         }
-        imagePickerContainer.appendChild(btn);
     }
 	// Get the HTML Canvas
   const canvas = document.getElementById("image_canvas");
   //canvas.click()
   // Get the canvas context
   let ctx = canvas.getContext('2d', { willReadFrequently: true });
-  
-  const currentHoverColorContainer = document.getElementById('currentHoverColorContainer');
-  const mostSimilarColorContainer = document.getElementById('mostSimilarColorContainer');
-  const currentChordContainer = document.getElementById('currentChordContainer');
-  const currentChordRootContainer = document.getElementById('currentChordRootContainer');
-  const currentColorFrame = document.getElementById('currentColorFrame');
-  
-  // pentatonic HTML
-  const currentPentatonicColorFrame = document.getElementById('currentPentatonicColorFrame');
-  const currentNoteContainer = document.getElementById('currentNoteContainer');
-  const currentNoteOriginalColorContainer = document.getElementById('currentNoteOriginalColorContainer');
-  const colorVectorContainer = document.getElementById('colorVectorContainer');
-
-  // circle of fifths HTML
-  const currentFifthColorFrame = document.getElementById('mostSimilarColorContainer');
-  const currentFifthNoteContainer = document.getElementById('currentChordContainer');
-  const fifthColorVectorContainer = document.getElementById('fifthColorVectorContainer');
-
-  if (!playPentatonic) {
-    currentPentatonicColorFrame.style.display = 'none';
-    colorVectorContainer.style.display = 'none';
-    currentNoteContainer.style.display = 'none';
-    currentNoteOriginalColorContainer.style.display = 'none';
-  }
-  currentFifthColorFrame.style.display = 'none';
-  fifthColorVectorContainer.style.display = 'none';
-  currentFifthNoteContainer.style.display = 'none';
+    
   //currentFifthNoteOriginalColorContainer.style.display = 'none';
   // Set this variable to any image source
   const params = new URLSearchParams(window.location.search);
@@ -401,8 +361,6 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
         ctx.getImageData(mouseX+0, mouseY+25, 1, 1).data,
         ctx.getImageData(mouseX+25, mouseY+25, 1, 1).data,
     ]
-    colorVectorContainer.innerHTML = colorVector.map(c => `<span style="background-color: rgb(${c[0]}, ${c[1]}, ${c[2]}); min-width: 20px; min-height: 20px; display: inline-block;"></span>`).join('');
-    fifthColorVectorContainer.innerHTML = colorVector.map(c => `<span style="background-color: rgb(${c[0]}, ${c[1]}, ${c[2]}); min-width: 20px; min-height: 20px; display: inline-block;"></span>`).join('');
     let pentatonicVector = colorVector.map(c => ({'mostSimilarColor': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).closestColor, 'originalColor': [c[0], c[1], c[2]], 'mostSimilarColorIndex': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex, 'frequency': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].frequency, 'noteExact': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].noteExact}));
     //console.table(pentatonicVector);
 
@@ -423,16 +381,6 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
         chordPlayer.playChord(chord);
     }
     
-
-
-    currentHoverColorContainer.style.backgroundColor = currentRGBA;
-    currentHoverColorContainer.innerHTML = `R: ${colorData[0]}<br>G: ${colorData[1]}<br>B: ${colorData[2]}`;
-    //mostSimilarColorContainer.innerHTML = `Most similar color: rgba(${mostSimilarColor[0]}, ${mostSimilarColor[1]}, ${mostSimilarColor[2]})`;
-    mostSimilarColorContainer.style.backgroundColor = `rgba(${mostSimilarColor[0]}, ${mostSimilarColor[1]}, ${mostSimilarColor[2]})`;
-    mostSimilarColorContainer.innerHTML = `R: ${mostSimilarColor[0]}<br>G: ${mostSimilarColor[1]}<br>B: ${mostSimilarColor[2]} <br>Note: ${chord.note}`;
-    currentChordContainer.innerHTML = `${chord.note} ${chord.quality}`;
-    currentChordRootContainer.innerHTML = `${chord.noteExact}`;
-    currentColorFrame.style.left = `${(mostSimilarColorIndex * 20)-6}px`;
 
     console.log('socket.readyState: ' + socket.readyState);
 
@@ -497,10 +445,6 @@ class PentatonicPlayer {
 
     playCurrentFirstNote() {
         let note = this.currentNotes[0];
-        currentNoteContainer.innerHTML = note.noteExact;
-        currentNoteContainer.style.backgroundColor = `rgba(${note.mostSimilarColor[0]}, ${note.mostSimilarColor[1]}, ${note.mostSimilarColor[2]})`;
-        currentNoteOriginalColorContainer.style.backgroundColor = `rgba(${note.originalColor[0]}, ${note.originalColor[1]}, ${note.originalColor[2]})`;
-        currentPentatonicColorFrame.style.left = `${(note.mostSimilarColorIndex * 20)-6}px`;
         if (this.soundStyle === 'digital') {
             
             const now = this.audioContext.currentTime;
@@ -997,9 +941,6 @@ let chords_used = getAllChords(notesMap);
 chords_used = evenlyTrimArray(chords_used, 60);
 
 
-
-let colorMapContainer = document.getElementById('colorMapContainer');
-
 for (let i in colors) {
     let chordAsString = ''
     if (chords_used[i].quality === 'major') {
@@ -1009,9 +950,6 @@ for (let i in colors) {
     } else if (chords_used[i].quality === 'diminished') {
         chordAsString = chords_used[i].note + 'dim'
     }
-    colorMapContainer.innerHTML += `<div style="position: relative; height: 20px; width: 12px; background-color: rgba(${colors[i][0]}, ${colors[i][1]}, ${colors[i][2]})">
-        <span style="font-size: 8px; min-width: 20px; text-align: center; position: absolute; left: -4px; top: -12px;">${chordAsString}</span>
-    </div>`;
 }
 
 if (playPentatonic) {

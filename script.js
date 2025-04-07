@@ -303,6 +303,11 @@ let currentImageIndex = 0;
   const params = new URLSearchParams(window.location.search);
   let IMAGE_SRC = params.get('imageSource');
   let AUDIO_VOLUME = params.get('volume');
+  if (!AUDIO_VOLUME) {
+    AUDIO_VOLUME = 0.3;
+  } else {
+    AUDIO_VOLUME = Number(AUDIO_VOLUME) / 100;
+  }
   let HAPTIC_INTENSITY = params.get('hapticsIntensity');
   let HAPTICS = params.get('haptics');
 

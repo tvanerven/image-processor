@@ -2,7 +2,7 @@ services:
 
   picture2notes:
     build: .
-    image: thomasve/picture2notes:latest
+    image: thomasve/picture2notes:exus
     container_name: picture2notes
     environment:
       - PORT=80

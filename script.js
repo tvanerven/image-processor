@@ -341,7 +341,10 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
   //currentFifthNoteOriginalColorContainer.style.display = 'none';
   // Set this variable to any image source
   const params = new URLSearchParams(window.location.search);
-  let IMAGE_SRC = params.get('imageSource')
+  let IMAGE_SRC = params.get('imageSource');
+  let AUDIO_VOLUME = params.get('audioVolume');
+  let HAPTIC_INTENSITY = params.get('hapticIntensity');
+
   function setImage(index) {
     const image = new Image();
    // console.log(colorMode)
@@ -415,12 +418,12 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
         mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).closestColor;
         mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).colorIndex;
         chord = chords_used[mostSimilarColorIndex];
-        chordPlayer.playChord(chord);
+        chordPlayer.playChord(chord, AUDIO_VOLUME);
     } else {
         mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).closestColor;
         mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).colorIndex;
         chord = chords_used[mostSimilarColorIndex];
-        chordPlayer.playChord(chord);
+        chordPlayer.playChord(chord, AUDIO_VOLUME);
     }
     
 
@@ -436,7 +439,7 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
 
     console.log('socket.readyState: ' + socket.readyState);
 
-    if (socket.readyState === WebSocket.OPEN) {
+    if (socket.readyState === WebSocket.OPEN && HAPTIC_INTENSITY !== 0) {
         const imageData = {
             position: {
                 x: mouseX,
@@ -449,7 +452,12 @@ document.getElementById('set-colors-shifted').addEventListener('click', function
             },
         }
         console.log(imageData);
-        socket.send(JSON.stringify(imageData));
+        // send haptic intensity together with image data
+        const data = {
+            intensity: Number(HAPTIC_INTENSITY),
+            image_data: imageData
+        };
+        socket.send(JSON.stringify(data));
     }
     }  
 }
@@ -574,18 +582,18 @@ class ChordPlayer {
       this.soundStyle = 'analog'; // set to either analog or digital
     }
   
-    playChord(chord) {
+    playChord(chord, audioVolume) {
 
         this.currentFrequencies = chord.frequencies; // Store the current chord
         this.currentChord = chord; // Store the current chord
         //this.playCurrentChord(); // Start playing the current chord
         if (!this.isPlaying) {
         //this.keepPlaying = true; // Set the flag to keep playing the current chord
-        this.playCurrentChord(); // Start playing the current chord
+        this.playCurrentChord(audioVolume); // Start playing the current chord
         }
     }
   
-    playCurrentChord() {
+    playCurrentChord(audioVolume) {
         if (this.soundStyle == 'digital') {
             if (!this.currentFrequencies || !this.keepPlaying) {
             // If there are no frequencies to play or the flag is false, stop playing
@@ -627,7 +635,7 @@ class ChordPlayer {
                 this.isPlaying = false;
                 // If keepPlaying is still true, play the chord again
                 if (this.keepPlaying) {
-                this.playCurrentChord();
+                this.playCurrentChord(audioVolume);
                 }
             }, noteLength * 1000); // Convert seconds to milliseconds
         } else if (this.soundStyle == 'analog') {
@@ -665,7 +673,7 @@ class ChordPlayer {
                 }
                 
                 let audio = new Audio(filePath + filename);
-                audio.volume = 0.3;
+                audio.volume = audioVolume ? audioVolume : 0.3;
                 audio.play();
                 let isPlayingMuter = this.isPlaying;
                 setTimeout(()=>{

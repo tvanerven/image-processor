@@ -48,7 +48,7 @@ const circleOfFifthsChords = notesMap.filter(note => {
 
 window.onload = function() {
     // Websocket for sending image data
-    const socket = new WebSocket('ws://localhost:8000/ws/send/image-processor/test/test');
+    const socket = new WebSocket('wss://haptimux.haptiverse.eu/ws/send/image-processor/exus/exus');
 
     // Event: Connection opened
     socket.addEventListener('open', () => {
@@ -302,8 +302,9 @@ let currentImageIndex = 0;
   // Set this variable to any image source
   const params = new URLSearchParams(window.location.search);
   let IMAGE_SRC = params.get('imageSource');
-  let AUDIO_VOLUME = params.get('audioVolume');
-  let HAPTIC_INTENSITY = params.get('hapticIntensity');
+  let AUDIO_VOLUME = params.get('volume');
+  let HAPTIC_INTENSITY = params.get('hapticsIntensity');
+  let HAPTICS = params.get('haptics');
 
   function setImage(index) {
     const image = new Image();
@@ -387,7 +388,7 @@ let currentImageIndex = 0;
 
     console.log('socket.readyState: ' + socket.readyState);
 
-    if (socket.readyState === WebSocket.OPEN && HAPTIC_INTENSITY !== 0) {
+    if (socket.readyState === WebSocket.OPEN && HAPTIC_INTENSITY !== 0 && HAPTICS === 'true') {
         const imageData = {
             position: {
                 x: mouseX,

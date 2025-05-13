@@ -1,5 +1,5 @@
 const playPentatonic = false;
-const playFifths = true;
+const playFifths = false;
 
 import notesMap from './piano_notes.js';
 

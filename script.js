@@ -322,8 +322,8 @@ let currentImageIndex = 0;
     console.log(IMAGE_SRC)
     
     image.onload = function() {
-        let maxWidth = canvas.width;
-        let maxHeight = canvas.height;
+        let maxWidth = window.innerWidth; // 100% of the window width
+        let maxHeight = window.innerHeight * 0.7; // 70% of the window height
 
         // Calculate scaling factors
         let widthScale = maxWidth / image.width;
@@ -336,9 +336,13 @@ let currentImageIndex = 0;
         // Clear the canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Set canvas dimensions to match scaled image
+        canvas.width = scaledWidth;
+        canvas.height = scaledHeight;
+
         // Draw the image proportionately
         ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight);
-        }
+    }
     }
   
 

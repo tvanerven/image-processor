@@ -1,0 +1,41 @@
+{
+  "name": "picture-to-notes",
+  "version": "1.0.0",
+  "description": "A canvas-based WebSocket-enabled library that maps images to musical notes and haptic signals.",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "clean": "rm -rf dist",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "canvas",
+    "music",
+    "audio",
+    "websocket",
+    "pentatonic",
+    "haptics",
+    "image-music",
+    "notes",
+    "visual-sonification"
+  ],
+  "author": "Thomas van Erven",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0"
+  }
+}

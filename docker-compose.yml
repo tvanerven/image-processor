@@ -2,7 +2,7 @@ services:
 
   picture2notes:
     build: .
-    image: thomasve/picture2notes:exusv1.4.5
+    image: harbor.wizardtower.dev/museit/picture2notes:exusv1.5.9
     container_name: picture2notes
     environment:
       - PORT=80

@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>picture to notes</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://browser.sentry-cdn.com/7.60.0/bundle.min.js" crossorigin="anonymous"></script>
+    <script>
+    Sentry.init({
+      dsn: "https://da76d83ae01a461e8d3eae2c2d241bcf@glitchtip.wizardtower.dev/2",
+      tracesSampleRate: 0.01,
+    });
+    </script>
 </head>
 <body style="font-family: Arial, Helvetica, sans-serif; margin: 0px; padding: 0px; background: #fefefe;">
   <div style="display: flex; flex-direction: column; justify-content: center; min-height: 100vh; align-items: center;">
@@ -16,7 +23,6 @@
         </canvas>
       </div>
     </div>
-    
     <script src="script.js" type="module"></script>
   </div>
 </body>

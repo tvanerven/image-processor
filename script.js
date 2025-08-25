@@ -3,6 +3,12 @@ const playFifths = false;
 
 import notesMap from './piano_notes.js';
 
+function logInfo(message, extra = {}) {
+  if (window.Sentry) {
+    Sentry.captureMessage(message, { level: 'info', extra });
+  }
+}
+
 let fifthsKeys = {
     "major": {
       "C": ["C", "G", "D", "A", "E", "B", "F#"],
@@ -48,238 +54,48 @@ const circleOfFifthsChords = notesMap.filter(note => {
 
 window.onload = function() {
     // Websocket for sending image data
-    const socket = new WebSocket('wss://haptimux.haptiverse.eu/ws/send/image-processor/exus/exus');
+    const socket = new WebSocket('wss://haptimux.haptiverse.eu/ws/send/localsender/test-listener/test-listener');
+    const contextUrl = 'https://haptimux.haptiverse.eu/vest/stream';
 
-    // Event: Connection opened
-    socket.addEventListener('open', () => {
-        console.log('WebSocket connection established');
-    });
-
-    // Event: Connection closed
-    socket.addEventListener('close', () => {
-        console.log('WebSocket connection closed');
-    });
-
-    // Event: WebSocket error
-    socket.addEventListener('error', (error) => {
-        console.error('WebSocket error:', error);
-    });
+    socket.addEventListener('open', () => console.log('WebSocket connection established'));
+    socket.addEventListener('close', () => console.log('WebSocket connection closed'));
+    socket.addEventListener('error', (error) => console.error('WebSocket error:', error));
 
     let images = [
-        {
-            filenameOriginal: 'output_images/vermeer -- combined all colors.png',
-            filenameShifted: 'output_images/vermeer -- combined forced colors.png',
-            title: 'Vermeer',
-            width: 600,
-            height: 672,
-        },
-        {
-            filenameOriginal: 'output_images/turner -- combined all colors.png',
-            filenameShifted: 'output_images/turner -- combined forced colors.png',
-            title: 'Turner',
-            width: 1600,
-            height: 1067,
-        },
-        {
-            filenameOriginal: 'output_images/bazille_family reunion -- combined all colors.png',
-            filenameShifted: 'output_images/bazille_family reunion -- combined forced colors.png',
-            title: 'Bazille',
-            width: 904,
-            height: 600,
-        },
-        {
-            filenameOriginal: 'output_images/leo putz_Halbindianerin mit Früchten -- combined all colors.png',
-            filenameShifted: 'output_images/leo putz_Halbindianerin mit Früchten -- combined forced colors.png',
-            title: 'Putz',
-            width: 662,
-            height: 722,
-        },
-        {
-            filenameOriginal: 'output_images/cavalcanti_mulata against a green background -- combined all colors.png',
-            filenameShifted: 'output_images/cavalcanti_mulata against a green background -- combined forced colors.png',
-            title: 'Cavalcanti',
-            width: 562,
-            height: 722,
-        },
-        {
-            filenameOriginal: 'output_images/unknown 1640 -- combined all colors.png',
-            filenameShifted: 'output_images/unknown 1640 -- combined forced colors.png',
-            title: 'Unknown',
-            width: 814,
-            height: 722,
-        },
-        {
-            filenameOriginal: 'output_images/alfred-sisley_autumn-banks-of-the-seine-near-bougival-1873 -- combined all colors.png',
-            filenameShifted: 'output_images/alfred-sisley_autumn-banks-of-the-seine-near-bougival-1873 -- combined forced colors.png',
-            title: 'Autumn banks of the Seine',
-            width: 1024,
-            height: 1024,
-        },
-        {
-            filenameOriginal: 'output_images/algernon-talmage_the-lake-district-for-holidays-honister-crag-london-midland-and-scottish-railway-poster-artwork -- combined all colors.png',
-            filenameShifted: 'output_images/algernon-talmage_the-lake-district-for-holidays-honister-crag-london-midland-and-scottish-railway-poster-artwork -- combined forced colors.png',
-            title: 'The Lake District', 
-            width: 1024,
-            height: 1024,
-        },
-        {
-            filenameOriginal: 'output_images/armand-guillaumin_echo-rock-1905 -- combined all colors.png',
-            filenameShifted: 'output_images/armand-guillaumin_echo-rock-1905 -- combined forced colors.png',
-            title: 'Echo Rock', 
-            width: 1024,
-            height: 1024,
-        },
-        {
-            filenameOriginal: 'output_images/benjamin-brown_eucalypti-near-arch-beach-california -- combined all colors.png',
-            filenameShifted: 'output_images/benjamin-brown_eucalypti-near-arch-beach-california -- combined forced colors.png',
-            title: 'Euclaypti near Arch Beach', 
-            width: 1024,
-            height: 1024,
-        },
-        {
-            filenameOriginal: 'output_images/benjamin-brown_grand-canyon -- combined all colors.png',
-            filenameShifted: 'output_images/benjamin-brown_grand-canyon -- combined forced colors.png',
-            title: 'Grand Canyon', 
-            width: 1024,
-            height: 1024,
-        },
-        {
-            filenameOriginal: 'output_images/benjamin-brown_poppies-and-eucalyptus -- combined all colors.png',
-            filenameShifted: 'output_images/benjamin-brown_poppies-and-eucalyptus -- combined forced colors.png',
-            title: 'Poppy and Eucalyptus', 
-            width: 1024,
-            height: 1024,
-        },
-        {
-            filenameOriginal: 'output_images/cezanne_still life with apples_1895 -- combined all colors.png',
-            filenameShifted: 'output_images/cezanne_still life with apples_1895 -- combined forced colors.png',
-            title: 'Still life with apples', 
-            width: 1014,
-            height: 742,
-        },
-        {
-            filenameOriginal: 'output_images/kahlo_viva la vida_1954 -- combined all colors.png',
-            filenameShifted: 'output_images/kahlo_viva la vida_1954 -- combined forced colors.png',
-            title: 'Viva la vida', 
-            width: 1035,
-            height: 742,
-        },
-        {
-            filenameOriginal: 'output_images/Linda10 (1) -- combined all colors.png',
-            filenameShifted: 'output_images/Linda10 (1) -- combined forced colors.png',
-            title: 'Linda 10', 
-            width: 3000,
-            height: 4000,
-        },
-        {
-            filenameOriginal: 'output_images/Ljus från lampa och omgivning -- combined all colors.png',
-            filenameShifted: 'output_images/Ljus från lampa och omgivning -- combined forced colors.png',
-            title: 'Ljust från lampa och omgivning', 
-            width: 2096,
-            height: 2956,
-        },
-        {
-            filenameOriginal: 'output_images/VAZQUEZ_Emmanuel_Honorato_01-scaled -- combined all colors.png',
-            filenameShifted: 'output_images/VAZQUEZ_Emmanuel_Honorato_01-scaled -- combined forced colors.png',
-            title: 'Emmanuel Honorato', 
-            width: 2560,
-            height: 1449,
-        },
-        {
-            filenameOriginal: 'output_images/warhol_Capa do álbum Velvet Underground & Nico_1967 -- combined all colors.png',
-            filenameShifted: 'output_images/warhol_Capa do álbum Velvet Underground & Nico_1967 -- combined forced colors.png',
-            title: 'Capa do álbum Velvet Underground & Nico', 
-            width: 736,
-            height: 737,
-        },
-        {
-            filenameOriginal: 'output_images/warhol_flowers_1970 -- combined all colors.png',
-            filenameShifted: 'output_images/warhol_flowers_1970 -- combined forced colors.png',
-            title: 'Flowers 1970', 
-            width: 731,
-            height: 743,
-        },
-        {
-            filenameOriginal: 'output_images/warhol_mao -- combined all colors.png',
-            filenameShifted: 'output_images/warhol_mao -- combined forced colors.png',
-            title: 'Mao', 
-            width: 336,
-            height: 387,
-        },
-        {
-            filenameOriginal: 'output_images/warhol_self portrait_1972 -- combined all colors.png',
-            filenameShifted: 'output_images/warhol_self portrait_1972 -- combined forced colors.png',
-            title: 'Self portrait 1972', 
-            width: 1486,
-            height: 740,
-        },
-        {
-            filenameOriginal: 'output_images/warhol_sunset_1972 -- combined all colors.png',
-            filenameShifted: 'output_images/warhol_sunset_1972 -- combined forced colors.png',
-            title: 'Sunset 1972', 
-            width: 733,
-            height: 739,
-        },
-        {
-            filenameOriginal: 'output_images/warhol_vesuvius_1985 -- combined all colors.png',
-            filenameShifted: 'output_images/warhol_vesuvius_1985 -- combined forced colors.png',
-            title: 'Versuvius 1985', 
-            width: 966,
-            height: 744,
-        },
-        {
-            filenameOriginal: 'output_images/kaggle dataset1 -- combined all colors.png',
-            filenameShifted: 'output_images/kaggle dataset1 -- combined forced colors.png',
-            title: 'Kaggle dataset1', 
-            width: 1024,
-            height: 1024,
-        },
-        {
-            filenameOriginal: 'output_images/kaggle dataset2 -- combined all colors.png',
-            filenameShifted: 'output_images/kaggle dataset2 -- combined forced colors.png',
-            title: 'Kaggle dataset2', 
-            width: 800,
-            height: 800,
-        },
-        {
-            filenameOriginal: 'output_images/kaggle dataset3 -- combined all colors.png',
-            filenameShifted: 'output_images/kaggle dataset3 -- combined forced colors.png',
-            title: 'Kaggle dataset3', 
-            width: 1024,
-            height: 772,
-        },
-        {
-            filenameOriginal: 'output_images/kaggle dataset4 -- combined all colors.png',
-            filenameShifted: 'output_images/kaggle dataset4 -- combined forced colors.png',
-            title: 'Kaggle dataset4', 
-            width: 1024,
-            height: 768,
-        },
-        {
-            filenameOriginal: 'output_images/kaggle dataset5 -- combined all colors.png',
-            filenameShifted: 'output_images/kaggle dataset5 -- combined forced colors.png',
-            title: 'Kaggle dataset5', 
-            width: 1024,
-            height: 685,
-        },
-        {
-            filenameOriginal: 'output_images/60_colors_chart.png',
-            filenameShifted: 'output_images/60_colors_chart.png',
-            title: 'Color chart',
-            width: 793,
-            height: 746,
-        },
-        {
-            filenameOriginal: 'input_images/circleoffifths.png',
-            filenameShifted: 'input_images/circleoffifths.png',
-            title: 'Circle of Fifths',
-            width: 1024,
-            height: 1024,
-        }
+        { filenameOriginal: 'output_images/vermeer -- combined all colors.png', filenameShifted: 'output_images/vermeer -- combined forced colors.png', title: 'Vermeer', width: 600, height: 672 },
+        { filenameOriginal: 'output_images/turner -- combined all colors.png', filenameShifted: 'output_images/turner -- combined forced colors.png', title: 'Turner', width: 1600, height: 1067 },
+        { filenameOriginal: 'output_images/bazille_family reunion -- combined all colors.png', filenameShifted: 'output_images/bazille_family reunion -- combined forced colors.png', title: 'Bazille', width: 904, height: 600 },
+        { filenameOriginal: 'output_images/leo putz_Halbindianerin mit Früchten -- combined all colors.png', filenameShifted: 'output_images/leo putz_Halbindianerin mit Früchten -- combined forced colors.png', title: 'Putz', width: 662, height: 722 },
+        { filenameOriginal: 'output_images/cavalcanti_mulata against a green background -- combined all colors.png', filenameShifted: 'output_images/cavalcanti_mulata against a green background -- combined forced colors.png', title: 'Cavalcanti', width: 562, height: 722 },
+        { filenameOriginal: 'output_images/unknown 1640 -- combined all colors.png', filenameShifted: 'output_images/unknown 1640 -- combined forced colors.png', title: 'Unknown', width: 814, height: 722 },
+        { filenameOriginal: 'output_images/alfred-sisley_autumn-banks-of-the-seine-near-bougival-1873 -- combined all colors.png', filenameShifted: 'output_images/alfred-sisley_autumn-banks-of-the-seine-near-bougival-1873 -- combined forced colors.png', title: 'Autumn banks of the Seine', width: 1024, height: 1024 },
+        { filenameOriginal: 'output_images/algernon-talmage_the-lake-district-for-holidays-honister-crag-london-midland-and-scottish-railway-poster-artwork -- combined all colors.png', filenameShifted: 'output_images/algernon-talmage_the-lake-district-for-holidays-honister-crag-london-midland-and-scottish-railway-poster-artwork -- combined forced colors.png', title: 'The Lake District', width: 1024, height: 1024 },
+        { filenameOriginal: 'output_images/armand-guillaumin_echo-rock-1905 -- combined all colors.png', filenameShifted: 'output_images/armand-guillaumin_echo-rock-1905 -- combined forced colors.png', title: 'Echo Rock', width: 1024, height: 1024 },
+        { filenameOriginal: 'output_images/benjamin-brown_eucalypti-near-arch-beach-california -- combined all colors.png', filenameShifted: 'output_images/benjamin-brown_eucalypti-near-arch-beach-california -- combined forced colors.png', title: 'Euclaypti near Arch Beach', width: 1024, height: 1024 },
+        { filenameOriginal: 'output_images/benjamin-brown_grand-canyon -- combined all colors.png', filenameShifted: 'output_images/benjamin-brown_grand-canyon -- combined forced colors.png', title: 'Grand Canyon', width: 1024, height: 1024 },
+        { filenameOriginal: 'output_images/benjamin-brown_poppies-and-eucalyptus -- combined all colors.png', filenameShifted: 'output_images/benjamin-brown_poppies-and-eucalyptus -- combined forced colors.png', title: 'Poppy and Eucalyptus', width: 1024, height: 1024 },
+        { filenameOriginal: 'output_images/cezanne_still life with apples_1895 -- combined all colors.png', filenameShifted: 'output_images/cezanne_still life with apples_1895 -- combined forced colors.png', title: 'Still life with apples', width: 1014, height: 742 },
+        { filenameOriginal: 'output_images/kahlo_viva la vida_1954 -- combined all colors.png', filenameShifted: 'output_images/kahlo_viva la vida_1954 -- combined forced colors.png', title: 'Viva la vida', width: 1035, height: 742 },
+        { filenameOriginal: 'output_images/Linda10 (1) -- combined all colors.png', filenameShifted: 'output_images/Linda10 (1) -- combined forced colors.png', title: 'Linda 10', width: 3000, height: 4000 },
+        { filenameOriginal: 'output_images/Ljus från lampa och omgivning -- combined all colors.png', filenameShifted: 'output_images/Ljus från lampa och omgivning -- combined forced colors.png', title: 'Ljust från lampa och omgivning', width: 2096, height: 2956 },
+        { filenameOriginal: 'output_images/VAZQUEZ_Emmanuel_Honorato_01-scaled -- combined all colors.png', filenameShifted: 'output_images/VAZQUEZ_Emmanuel_Honorato_01-scaled -- combined forced colors.png', title: 'Emmanuel Honorato', width: 2560, height: 1449 },
+        { filenameOriginal: 'output_images/warhol_Capa do álbum Velvet Underground & Nico_1967 -- combined all colors.png', filenameShifted: 'output_images/warhol_Capa do álbum Velvet Underground & Nico_1967 -- combined forced colors.png', title: 'Capa do álbum Velvet Underground & Nico', width: 736, height: 737 },
+        { filenameOriginal: 'output_images/warhol_flowers_1970 -- combined all colors.png', filenameShifted: 'output_images/warhol_flowers_1970 -- combined forced colors.png', title: 'Flowers 1970', width: 731, height: 743 },
+        { filenameOriginal: 'output_images/warhol_mao -- combined all colors.png', filenameShifted: 'output_images/warhol_mao -- combined forced colors.png', title: 'Mao', width: 336, height: 387 },
+        { filenameOriginal: 'output_images/warhol_self portrait_1972 -- combined all colors.png', filenameShifted: 'output_images/warhol_self portrait_1972 -- combined forced colors.png', title: 'Self portrait 1972', width: 1486, height: 740 },
+        { filenameOriginal: 'output_images/warhol_sunset_1972 -- combined all colors.png', filenameShifted: 'output_images/warhol_sunset_1972 -- combined forced colors.png', title: 'Sunset 1972', width: 733, height: 739 },
+        { filenameOriginal: 'output_images/warhol_vesuvius_1985 -- combined all colors.png', filenameShifted: 'output_images/warhol_vesuvius_1985 -- combined forced colors.png', title: 'Versuvius 1985', width: 966, height: 744 },
+        { filenameOriginal: 'output_images/kaggle dataset1 -- combined all colors.png', filenameShifted: 'output_images/kaggle dataset1 -- combined forced colors.png', title: 'Kaggle dataset1', width: 1024, height: 1024 },
+        { filenameOriginal: 'output_images/kaggle dataset2 -- combined all colors.png', filenameShifted: 'output_images/kaggle dataset2 -- combined forced colors.png', title: 'Kaggle dataset2', width: 800, height: 800 },
+        { filenameOriginal: 'output_images/kaggle dataset3 -- combined all colors.png', filenameShifted: 'output_images/kaggle dataset3 -- combined forced colors.png', title: 'Kaggle dataset3', width: 1024, height: 772 },
+        { filenameOriginal: 'output_images/kaggle dataset4 -- combined all colors.png', filenameShifted: 'output_images/kaggle dataset4 -- combined forced colors.png', title: 'Kaggle dataset4', width: 1024, height: 768 },
+        { filenameOriginal: 'output_images/kaggle dataset5 -- combined all colors.png', filenameShifted: 'output_images/kaggle dataset5 -- combined forced colors.png', title: 'Kaggle dataset5', width: 1024, height: 685 },
+        { filenameOriginal: 'output_images/60_colors_chart.png', filenameShifted: 'output_images/60_colors_chart.png', title: 'Color chart', width: 793, height: 746 },
+        { filenameOriginal: 'input_images/circleoffifths.png', filenameShifted: 'input_images/circleoffifths.png', title: 'Circle of Fifths', width: 1024, height: 1024 }
     ]
 
-let colorMode = 'original';
-let currentImageIndex = 0;
+    let colorMode = 'original';
+    let currentImageIndex = 0;
     
     for (let i in images) {
         let btn = document.createElement('button');
@@ -292,132 +108,492 @@ let currentImageIndex = 0;
             setImage(i);
         }
     }
-	// Get the HTML Canvas
-  const canvas = document.getElementById("image_canvas");
-  //canvas.click()
-  // Get the canvas context
-  let ctx = canvas.getContext('2d', { willReadFrequently: true });
-    
-  //currentFifthNoteOriginalColorContainer.style.display = 'none';
-  // Set this variable to any image source
-  const params = new URLSearchParams(window.location.search);
-  let IMAGE_SRC = params.get('imageSource');
-  let AUDIO_VOLUME = params.get('volume');
-  if (!AUDIO_VOLUME) {
-    AUDIO_VOLUME = 0.3;
-  } else {
-    AUDIO_VOLUME = Number(AUDIO_VOLUME) / 100;
-  }
-  let HAPTIC_INTENSITY = params.get('hapticsIntensity');
-  let HAPTICS = params.get('haptics');
 
-  function setImage(index) {
-    const image = new Image();
-   // console.log(colorMode)
-    if (colorMode === 'original') {
-        image.src = images[index].filenameOriginal;
-    } else if (colorMode === 'shifted') {
-        image.src = images[index].filenameShifted;
+    // Get the HTML Canvas
+    const canvas = document.getElementById("image_canvas");
+    // Get the canvas context
+    let ctx = canvas.getContext('2d', { willReadFrequently: true });
+    let lastImage = null;
+    let lastDrawMode = 'natural'; // 'natural' | 'scaled'
+    let lastW = 0, lastH = 0;
+
+    function redrawBackground() {
+      if (!lastImage) return;
+      if (lastDrawMode === 'scaled') {
+          ctx.drawImage(lastImage, 0, 0, lastW, lastH);
+      } else {
+          ctx.drawImage(lastImage, 0, 0);
+      }
     }
-    console.log(IMAGE_SRC)
-    
-    image.onload = function() {
-        let maxWidth = window.innerWidth; // 100% of the window width
-        let maxHeight = window.innerHeight * 0.7; // 70% of the window height
 
-        // Calculate scaling factors
-        let widthScale = maxWidth / image.width;
-        let heightScale = maxHeight / image.height;
-        let scaleFactor = Math.min(widthScale, heightScale);
+    function drawCursorDot(x, y) {
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = 'black';
+      ctx.fill();
+    }
 
-        let scaledWidth = image.width * scaleFactor;
-        let scaledHeight = image.height * scaleFactor;
+    function drawSceneWithCursor(x, y) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      redrawBackground();
+      drawCursorDot(x, y);
+    }
 
-        // Clear the canvas
+    // --- Pointer Lock: state + helpers ---
+    let vX = canvas.width / 2;   // virtual cursor (while locked)
+    let vY = canvas.height / 2;
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function requestLock() {
+      if (document.pointerLockElement === canvas) return;
+      const p = canvas.requestPointerLock();
+      if (p && typeof p.catch === 'function') p.catch(err => console.warn('requestPointerLock rejected:', err));
+    }
+
+    document.addEventListener('pointerlockchange', () => {
+      const locked = document.pointerLockElement === canvas;
+      if (locked) {
+        vX = canvas.width / 2;
+        vY = canvas.height / 2;
+      }
+      canvas.style.cursor = locked ? 'none' : 'default';
+    });
+
+    document.addEventListener('pointerlockerror', (e) => {
+      console.warn('pointerlockerror', e);
+    });
+
+    // Click to lock
+    canvas.addEventListener('click', requestLock);
+
+    // ESC to unlock (mirroring browser default)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.pointerLockElement === canvas) {
+        document.exitPointerLock();
+      }
+    });
+
+    // While locked: **clear+redraw image BEFORE sampling**, then draw dot
+    document.addEventListener('mousemove', (e) => {
+      if (document.pointerLockElement === canvas) {
+        vX = clamp(vX + e.movementX, 0, canvas.width - 1);
+        vY = clamp(vY + e.movementY, 0, canvas.height - 1);
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        redrawBackground();
 
-        // Set canvas dimensions to match scaled image
-        canvas.width = scaledWidth;
-        canvas.height = scaledHeight;
+        handleHoverAt(vX, vY);
+        drawCursorDot(vX, vY);
+      }
+    });
 
-        // Draw the image proportionately
-        ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+    // While NOT locked: same order (clear/redraw → sample → draw dot)
+    canvas.addEventListener('mousemove', (e) => {
+      if (document.pointerLockElement !== canvas) {
+        const x = e.offsetX, y = e.offsetY;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        redrawBackground();
+
+        handleHoverAt(x, y);
+        drawCursorDot(x, y);
+      }
+    });
+
+    // URL params
+    const params = new URLSearchParams(window.location.search);
+    let IMAGE_SRC = params.get('imageSource');
+    let AUDIO_VOLUME = params.get('volume');
+    if (!AUDIO_VOLUME == null ) {
+      AUDIO_VOLUME = 0.3;
+    } else {
+      AUDIO_VOLUME = Number(AUDIO_VOLUME) / 100;
     }
+    let HAPTIC_INTENSITY = params.get('hapticsIntensity');
+    let HAPTICS = params.get('haptics');
+
+    function setImage(index) {
+      const image = new Image();
+      if (colorMode === 'original') {
+          image.src = images[index].filenameOriginal;
+      } else if (colorMode === 'shifted') {
+          image.src = images[index].filenameShifted;
+      }
+      console.log(IMAGE_SRC)
+      
+      image.onload = function() {
+          logInfo("Loaded image");
+          let maxWidth = window.innerWidth;      // 100% of the window width
+          let maxHeight = window.innerHeight * 0.7; // 70% of the window height
+
+          // Calculate scaling factors
+          let widthScale = maxWidth / image.width;
+          let heightScale = maxHeight / image.height;
+          let scaleFactor = Math.min(widthScale, heightScale);
+
+          let scaledWidth = image.width * scaleFactor;
+          let scaledHeight = image.height * scaleFactor;
+
+          // Clear the canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Set canvas dimensions to match scaled image
+          canvas.width = scaledWidth;
+          canvas.height = scaledHeight;
+
+          // Draw the image proportionately
+          ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight);
+          lastImage = image;
+          lastDrawMode = 'scaled';
+          lastW = scaledWidth;
+          lastH = scaledHeight;
+          drawSceneWithCursor(canvas.width / 2, canvas.height / 2);
+      }
     }
   
-
-	// Create a new image and add it to your canvas
-  const img = new Image();
-    // Wait for the image to load before drawing to the canvas
+    // Load initial image at natural draw
+    const img = new Image();
     img.addEventListener('load', function() {
         ctx.drawImage(img, 0, 0);
+        lastImage = img;
+        lastDrawMode = 'natural';
+        lastW = img.naturalWidth;
+        lastH = img.naturalHeight;
+        drawSceneWithCursor(canvas.width / 2, canvas.height / 2);
     }, false);
-  img.src = IMAGE_SRC;
-  // This is important to avoid cross origin errors
-  img.setAttribute('crossOrigin', '');
-  //setImage()
-  // Add a function to the mousemove event to get pixel data
-  // NOTE: You should probably debounce this
-  
-  canvas.onmousemove = function(e) {
-    let mouseX = e.offsetX;
-    let mouseY = e.offsetY;
-    let colorData = ctx.getImageData(mouseX, mouseY, 1, 1).data;
-    let colorVector = [
-        ctx.getImageData(mouseX-25, mouseY-25, 1, 1).data,
-        ctx.getImageData(mouseX+0, mouseY-25, 1, 1).data,
-        ctx.getImageData(mouseX+25, mouseY-25, 1, 1).data,
-        ctx.getImageData(mouseX-25, mouseY+0, 1, 1).data,
-        ctx.getImageData(mouseX+0, mouseY+0, 1, 1).data,
-        ctx.getImageData(mouseX+25, mouseY+0, 1, 1).data,
-        ctx.getImageData(mouseX-25, mouseY+25, 1, 1).data,
-        ctx.getImageData(mouseX+0, mouseY+25, 1, 1).data,
-        ctx.getImageData(mouseX+25, mouseY+25, 1, 1).data,
-    ]
-    let pentatonicVector = colorVector.map(c => ({'mostSimilarColor': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).closestColor, 'originalColor': [c[0], c[1], c[2]], 'mostSimilarColorIndex': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex, 'frequency': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].frequency, 'noteExact': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].noteExact}));
-    //console.table(pentatonicVector);
+    img.src = IMAGE_SRC;
+    img.setAttribute('crossOrigin', '');
 
-    let mostSimilarColor, mostSimilarColorIndex, chord, currentRGBA;
+        // ---------- postMessage control (key/value) ----------
+    // SECURITY: set the exact parent origin that will embed this iframe
+    const PARENT_ORIGIN = "*"; // e.g. "https://frontend.example" — replace "*" in production
 
-    if (playPentatonic) {  
-        pentatonicPlayer.playNotes(pentatonicVector);
+    // Shared state we expose/echo back
+    const controlState = {
+      volume: (typeof AUDIO_VOLUME === 'number' ? Math.round(AUDIO_VOLUME * 100) : 30), // 0..100
+      hapticIntensity: Number(HAPTIC_INTENSITY || 0),    // 0..100
+      haptics: String(HAPTICS || 'false') === 'true',    // boolean
+      mode: 'color'                                      // 'contour' | 'concepts' | 'color'
+    };
+
+    function clampNum(v, lo, hi) {
+      v = Number(v);
+      if (Number.isNaN(v)) v = lo;
+      return Math.max(lo, Math.min(hi, v));
     }
-    if (playFifths) {
-        mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).closestColor;
-        mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).colorIndex;
-        chord = chords_used[mostSimilarColorIndex];
-        chordPlayer.playChord(chord, AUDIO_VOLUME);
-    } else {
-        mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).closestColor;
-        mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).colorIndex;
-        chord = chords_used[mostSimilarColorIndex];
-        chordPlayer.playChord(chord, AUDIO_VOLUME);
+
+    function postAck(key) {
+      // Always reply with the *current* value
+      const payload = { type: 'ack', key, value: controlState[key] };
+      // NB: targetOrigin should be your real PARENT_ORIGIN in production
+      window.parent.postMessage(payload, PARENT_ORIGIN);
     }
-    
 
-    console.log('socket.readyState: ' + socket.readyState);
+    function applySideEffects(key) {
+      // reflect state changes into your existing globals / WS
+      switch (key) {
+        case 'volume':
+          // Your code uses AUDIO_VOLUME (0..1) when calling chordPlayer.playChord(...)
+          AUDIO_VOLUME = controlState.volume / 100;
+          console.log(controlState)
+          break;
+        case 'hapticIntensity':
+          // Your code reads HAPTIC_INTENSITY when building the payload to send
+          HAPTIC_INTENSITY = String(controlState.hapticIntensity);
+          break;
+        case 'haptics':
+          // Your code checks HAPTICS === 'true'
+          HAPTICS = controlState.haptics ? 'true' : 'false';
+          break;
+        case 'mode': {
+          // internal → wire mapping
+          const mapModeForWire = (m) => {
+            const s = String(m || '').toLowerCase();
+            if (s === 'concepts' || s === 'notes' || s === 'auto') return 'auto';
+            if (s === 'contours') return 'contour';
+            return s; // 'color' or 'contour'
+          };
+          const wireMode = mapModeForWire(controlState.mode);
 
-    if (socket.readyState === WebSocket.OPEN && HAPTIC_INTENSITY !== 0 && HAPTICS === 'true') {
-        const imageData = {
-            position: {
-                x: mouseX,
-                y: mouseY
-            },
-            color: {
-                r: colorData[0],
-                g: colorData[1],
-                b: colorData[2],
-            },
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            try {
+              socket.send(JSON.stringify({ cmd: 'set_mode', value: wireMode }));
+            } catch (e) {
+              console.warn('WS send set_mode failed:', e);
+            }
+          }
+          break;
         }
-        console.log(imageData);
-        // send haptic intensity together with image data
-        const data = {
-            intensity: Number(HAPTIC_INTENSITY),
-            image_data: imageData
-        };
-        socket.send(JSON.stringify(data));
+        // volume2 has no effect in current audio path; stored & echoed only
+      }
     }
-    }  
+
+  window.addEventListener('message', (event) => {
+    // if (event.origin !== PARENT_ORIGIN) return; // enable in prod
+
+    const data = event.data;
+    if (typeof data !== 'object' || data === null) return;
+
+    console.log("Valid message received:", data);
+
+    const crumb = (key, value) => {
+      if (window.Sentry) {
+        Sentry.addBreadcrumb({
+          category: 'postMessage',
+          level: 'info',
+          data: { origin: event.origin, key, value }
+        });
+        Sentry.captureMessage(`postMessage: ${key}`, {
+          level: 'info',
+          extra: { origin: event.origin, value }
+        });
+      }
+    };
+
+    // Preferred: typed envelope { type: "<kind>", ...payload }
+    if (typeof data.type === 'string' && data.type.length > 0) {
+      const t0 = data.type.toLowerCase();
+
+      switch (t0) {
+        case 'volume': {
+          const v = clampNum(data.volume, 0, 100);
+          crumb('volume', v);
+          controlState.volume = v;
+          applySideEffects('volume');
+          postAck('volume');
+          return;
+        }
+
+        case 'hapticsintensity':
+        case 'hapticintensity': {
+          const v = clampNum(data.hapticsIntensity ?? data.hapticIntensity, 0, 100);
+          crumb('hapticIntensity', v);
+          controlState.hapticIntensity = v;
+          applySideEffects('hapticIntensity');
+          postAck('hapticIntensity');
+          return;
+        }
+
+        case 'mode': {
+          const raw = String(data.mode || '').toLowerCase();
+          const s = raw === 'contours' ? 'contour'
+                  : raw === 'notes'    ? 'concepts'
+                  : raw;
+          const allowed = ['contour', 'concepts', 'color'];
+          crumb('mode', raw);
+          if (allowed.includes(s)) {
+            controlState.mode = s;
+            applySideEffects('mode'); // WS notify
+          }
+          postAck('mode');
+          return;
+        }
+
+        case 'mouseclick': {
+          crumb('mouseClick', { pointerLock: data.pointerLock });
+          handleMouseClick({ pointerLock: !!data.pointerLock });
+          return;
+        }
+
+        // IMPORTANT: lowercased case label to match t0
+        case 'hapticcontext': {
+          crumb('hapticContext', data.hapticContext);
+          handleHapticContext(data.hapticContext);
+          return;
+        }
+
+        default:
+          return;
+      }
+    }
+
+    // Fallback: direct-key payloads like { volume: 60 }, { mode: "color" }, { hapticContext: "..." }
+    for (const [key, rawVal] of Object.entries(data)) {
+      switch (key) {
+        case 'volume': {
+          const v = clampNum(rawVal, 0, 100);
+          crumb('volume', v);
+          controlState.volume = v;
+          applySideEffects('volume');
+          postAck('volume');
+          break;
+        }
+
+        case 'hapticsIntensity':
+        case 'hapticIntensity': {
+          const v = clampNum(rawVal, 0, 100);
+          crumb('hapticIntensity', v);
+          controlState.hapticIntensity = v;
+          applySideEffects('hapticIntensity');
+          postAck('hapticIntensity');
+          break;
+        }
+
+        case 'mode': {
+          const raw = String(rawVal || '').toLowerCase();
+          const s = raw === 'contours' ? 'contour'
+                  : raw === 'notes'    ? 'concepts'
+                  : raw;
+          const allowed = ['contour', 'concepts', 'color'];
+          crumb('mode', raw);
+          if (allowed.includes(s)) {
+            controlState.mode = s;
+            applySideEffects('mode');
+          }
+          postAck('mode');
+          break;
+        }
+
+        // NEW: handle direct hapticContext key in fallback
+        case 'hapticContext':
+        case 'hapticcontext': {
+          crumb('hapticContext', rawVal);
+          handleHapticContext(rawVal);
+          break;
+        }
+
+        default:
+          break;
+      }
+    }
+  });
+
+  function handleMouseClick({ pointerLock }) {
+    if (pointerLock) {
+      requestLock();
+    } else {
+      document.exitPointerLock();
+    }
+  }
+
+  function handleHapticContext(hapticContext) {
+    try {
+      let arr;
+
+      if (Array.isArray(hapticContext)) {
+        // Already an array-like list of lines
+        arr = hapticContext.map(String);
+      } else if (typeof hapticContext === "string") {
+        const s = hapticContext.trim();
+
+        // Try parse as-is first (in case it’s valid JSON already)
+        try {
+          const maybeJson = JSON.parse(s);
+          arr = Array.isArray(maybeJson) ? maybeJson.map(String) : [String(maybeJson)];
+        } catch {
+          // Normalize Python-ish list → JSON array
+          const normalized = s.replace(/'/g, '"');
+          try {
+            const parsed = JSON.parse(normalized);
+            arr = Array.isArray(parsed) ? parsed.map(String) : [String(parsed)];
+          } catch {
+            // Last resort: split into lines on comma boundaries
+            arr = normalized.split(/\s*,\s*/).map(String);
+          }
+        }
+      } else {
+        // Unknown shape
+        arr = [];
+      }
+
+      // Extract values from lines like:  '"Type List": "Still life",'
+      const values = [];
+      for (const line of arr) {
+        const trimmed = line.trim();
+        // Skip braces and empties
+        if (trimmed === '' || trimmed === '{' || trimmed === '}' || trimmed === '"{"' || trimmed === '"}"') continue;
+
+        // Pull the right-hand side of "Key": "Value"
+        const match = trimmed.match(/:\s*"?([^",}]+)"?/);
+        if (match && match[1]) values.push(match[1]);
+      }
+
+      console.log("Extracted hapticContext values:", values);
+      if (window.Sentry) {
+        Sentry.captureMessage("hapticContext parsed", { level: "info", extra: { values } });
+      }
+
+      controlState.hapticContext = values;
+      let response = fetch(contextUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ haptograms: values, receiver: 'test-listener' })
+      });
+      console.log("Haptic context sent:", response);
+      postAck('hapticContext');
+    } catch (e) {
+      console.warn("Failed to parse hapticContext:", hapticContext, e);
+      if (window.Sentry) {
+        Sentry.captureException(e, { extra: { raw: hapticContext } });
+      }
+    }
+  }
+
+
+    // --- shared hover handler used by both mouse paths (locked & unlocked) ---
+    function handleHoverAt(mouseX, mouseY) {
+      // clamp + integerize to be safe
+      const w = canvas.width, h = canvas.height;
+      const x = Math.max(0, Math.min(w - 1, Math.floor(mouseX)));
+      const y = Math.max(0, Math.min(h - 1, Math.floor(mouseY)));
+
+      const safeRead = (px, py) => {
+        const sx = Math.max(0, Math.min(w - 1, Math.floor(px)));
+        const sy = Math.max(0, Math.min(h - 1, Math.floor(py)));
+        return ctx.getImageData(sx, sy, 1, 1).data;
+      };
+
+      let colorData = safeRead(x, y);
+      let colorVector = [
+          safeRead(x-25, y-25),
+          safeRead(x+0,  y-25),
+          safeRead(x+25, y-25),
+          safeRead(x-25, y+0),
+          safeRead(x+0,  y+0),
+          safeRead(x+25, y+0),
+          safeRead(x-25, y+25),
+          safeRead(x+0,  y+25),
+          safeRead(x+25, y+25),
+      ];
+
+      let pentatonicVector = colorVector.map(c => ({
+        'mostSimilarColor': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).closestColor,
+        'originalColor': [c[0], c[1], c[2]],
+        'mostSimilarColorIndex': findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex,
+        'frequency': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].frequency,
+        'noteExact': pentatonic_in_key[findMostSimilarRGB([c[0], c[1], c[2]], pentatonicColors).colorIndex].noteExact
+      }));
+
+      let mostSimilarColor, mostSimilarColorIndex, chord;
+
+      if (playPentatonic) {  
+          pentatonicPlayer.playNotes(pentatonicVector);
+      }
+      if (playFifths) {
+          mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).closestColor;
+          mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], circleOfFifths).colorIndex;
+          chord = chords_used[mostSimilarColorIndex];
+          chordPlayer.playChord(chord, AUDIO_VOLUME);
+      } else {
+          mostSimilarColor = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).closestColor;
+          mostSimilarColorIndex = findMostSimilarRGB([colorData[0], colorData[1], colorData[2]], colors).colorIndex;
+          chord = chords_used[mostSimilarColorIndex];
+          chordPlayer.playChord(chord, AUDIO_VOLUME);
+      }
+
+      if (socket.readyState === WebSocket.OPEN && HAPTIC_INTENSITY !== 0 && HAPTICS === 'true') {
+          const imageData = {
+              position: { x: x, y: y },
+              color: { r: colorData[0], g: colorData[1], b: colorData[2] },
+          }
+          const data = { intensity: Number(HAPTIC_INTENSITY), image_data: imageData };
+          console.log("Sending: ", data);
+          socket.send(JSON.stringify(data));
+      }
+    }
 }
 
 class PentatonicPlayer {
@@ -425,52 +601,29 @@ class PentatonicPlayer {
         this.audioContext = audioContext;
         this.isPlaying = false;
         this.reverb = reverb;
-        this.currentNotes = []; // Store the current notes
+        this.currentNotes = [];
         this.lastPlayedNoteExact = null;
-        this.keepPlaying = false; // Flag to control the playback loop
-        this.soundStyle = 'analog'; // set to either analog or digital
-        this.playChords = false; // set to false to play only single notes, set to true to play chords.
-        //this.currentPlayback = new Promise(function(resolve, reject){}); // Store the current playback timeout
+        this.keepPlaying = false;
+        this.soundStyle = 'analog';
+        this.playChords = false;
     }
   
-   // similar to the chord player, but this loops through the pentatonic notes and play each not for 1 second. 
     playNotes(notes) {
-
         if (this.currentNotes.length < 9 && this.isPlaying === false) {
-            this.currentNotes = notes; // Store the current notes
+            this.currentNotes = notes;
             this.playCurrentNotes();
         }
-
-
-        // compare if the new input notes are the same as the current notes, if not, stop the current notes and play the new notes
-        // if (JSON.stringify(notes) === JSON.stringify(this.currentNotes) && this.isPlaying) {
-        //     console.log('same notes')
-        //     return;
-        // } else {
-        //     this.keepPlaying = false; // Stop the current playback loop
-        //     this.isPlaying = false; 
-        //     this.currentNotes = notes; // Store the current notes
-        //     if (!this.isPlaying && this.currentNotes.length > 0) {
-        //         console.log('play notes')
-        //         this.keepPlaying = true; // Set the flag to keep playing the current notes
-        //         this.playCurrentNotes(); // Start playing the current notes
-        //     }
-        // }
-        
-
-        
     }
 
     playCurrentFirstNote() {
         let note = this.currentNotes[0];
         if (this.soundStyle === 'digital') {
-            
             const now = this.audioContext.currentTime;
             const attackTime = 0.1;
             const decayTime = 0;
             const sustainLevel = 1;
             const releaseTime = 0.01;
-            const noteLength = 1; // Length of each note in seconds
+            const noteLength = 1;
 
             const oscillator = this.audioContext.createOscillator();
             oscillator.type = 'triangle';
@@ -490,20 +643,17 @@ class PentatonicPlayer {
             gainNode.gain.setValueAtTime(sustainLevel, now + noteLength - releaseTime);
             gainNode.gain.linearRampToValueAtTime(0, now + noteLength);
             oscillator.stop(now + noteLength);
-            //new Promise(resolve => setTimeout(resolve, noteLength * 1000));
-        } else if (this.soundStyle = 'analog') {
+        } else if (this.soundStyle = 'analog') { // (left as-is)
             let filename = `${note.noteExact}.mp3`;
             let filePath = 'piano_notes/piano-mp3/';
             let audio = new Audio(filePath + filename);
             audio.play();
         }
-        
     }
 
     playCurrentNotes() {   
         this.playCurrentFirstNote();
         let noteInterval = setInterval(() => {
-            //console.log('playing note')
             if (this.currentNotes.length > 0) {
                 this.isPlaying = true;
                 if (this.lastPlayedNoteExact != this.currentNotes[0].noteExact) {
@@ -516,13 +666,7 @@ class PentatonicPlayer {
                 this.isPlaying = false;
             }
         }, 250);
-
-
-        // Wait for the note to finish before playing the next one
-        //new Promise(resolve => setTimeout(resolve, noteLength * 1000));
-        //this.isPlaying = false;    
     }
-    
 }
 
 class ChordPlayer {
@@ -530,70 +674,56 @@ class ChordPlayer {
       this.audioContext = audioContext;
       this.reverb = reverb;
       this.isPlaying = false;
-      this.currentFrequencies = null; // Store the current chord
-      this.currentChord = null; // Store the current chord
-      this.keepPlaying = false; // Flag to control the playback loop
-      this.soundStyle = 'analog'; // set to either analog or digital
+      this.currentFrequencies = null;
+      this.currentChord = null;
+      this.keepPlaying = false;
+      this.soundStyle = 'analog';
     }
   
     playChord(chord, audioVolume) {
-
-        this.currentFrequencies = chord.frequencies; // Store the current chord
-        this.currentChord = chord; // Store the current chord
-        //this.playCurrentChord(); // Start playing the current chord
+        this.currentFrequencies = chord.frequencies;
+        this.currentChord = chord;
         if (!this.isPlaying) {
-        //this.keepPlaying = true; // Set the flag to keep playing the current chord
-        this.playCurrentChord(audioVolume); // Start playing the current chord
+          this.playCurrentChord(audioVolume);
         }
     }
   
     playCurrentChord(audioVolume) {
         if (this.soundStyle == 'digital') {
             if (!this.currentFrequencies || !this.keepPlaying) {
-            // If there are no frequencies to play or the flag is false, stop playing
-            this.isPlaying = false;
-            return;
+              this.isPlaying = false;
+              return;
             }
-
             this.isPlaying = true;
             const now = this.audioContext.currentTime;
             const attackTime = 0.1;
             const decayTime = 0;
             const sustainLevel = 1;
             const releaseTime = .01;
-            const noteLength = 1; // Length of each note
-
+            const noteLength = 1;
             this.currentFrequencies.forEach(frequency => {
                 const oscillator = this.audioContext.createOscillator();
                 oscillator.type = 'triangle';
                 const gainNode = this.audioContext.createGain();
-
                 oscillator.connect(gainNode);
                 gainNode.connect(this.reverb);
                 this.reverb.connect(this.audioContext.destination);
-
                 gainNode.gain.setValueAtTime(0, now);
                 gainNode.gain.linearRampToValueAtTime(1, now + attackTime);
                 gainNode.gain.linearRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
-
                 oscillator.frequency.setValueAtTime(frequency, now);
                 oscillator.start(now);
-
                 gainNode.gain.setValueAtTime(sustainLevel, now + noteLength - releaseTime);
                 gainNode.gain.linearRampToValueAtTime(0, now + noteLength);
                 oscillator.stop(now + noteLength);
             });
-    
-            // Schedule the next play after the current play is finished
             setTimeout(() => {
                 this.isPlaying = false;
-                // If keepPlaying is still true, play the chord again
                 if (this.keepPlaying) {
-                this.playCurrentChord(audioVolume);
+                  this.playCurrentChord(audioVolume);
                 }
-            }, noteLength * 1000); // Convert seconds to milliseconds
+            }, noteLength * 1000);
         } else if (this.soundStyle == 'analog') {
-            
             if (this.isPlaying !== true) {
                 let chordQuality = '';
                 let filePath = '';
@@ -604,102 +734,54 @@ class ChordPlayer {
                 } else {
                     filePath = 'piano_notes/';
                 }
-                
-                
                 switch (this.currentChord.quality) {
-                    case 'diminished':
-                        chordQuality = 'dim';
-                        break;
-                    case 'major':
-                        chordQuality = 'maj';
-                        break;
-                    case 'minor':
-                        chordQuality = 'min';
-                        break;
-                }  
+                    case 'diminished': chordQuality = 'dim'; break;
+                    case 'major': chordQuality = 'maj'; break;
+                    case 'minor': chordQuality = 'min'; break;
+                }
                 if (this.playChords) {
                     noteName = this.currentChord.note.replaceAll('#', 's');
                     filename = `${noteName}_${chordQuality}_${this.currentChord.octave}_0.wav`;
                 } else {
                     noteName = this.currentChord.note.replaceAll('#', 's');
                     filename = `${noteName}${this.currentChord.octave}.mp3`;
-                    //console.log(filename)
                 }
-                
                 let audio = new Audio(filePath + filename);
-                audio.volume = audioVolume ? audioVolume : 0.3;
+                audio.volume = (audioVolume !== undefined && audioVolume !== null) ? audioVolume : 0.3;
                 audio.play();
-                let isPlayingMuter = this.isPlaying;
-                setTimeout(()=>{
-                    this.isPlaying = false;
-                }, 2250)
+                setTimeout(()=>{ this.isPlaying = false; }, 2250);
                 this.isPlaying = true;
             }
         }
     }
   
-    // Method to stop playing the current chord and prepare for a new one
     setNewChord(frequencies) {
-      this.keepPlaying = false; // Stop the current playback loop
-      setTimeout(() => {
-        this.playChord(frequencies); // Play the new chord after a short delay
-      }, 50); // Short delay to ensure the current playing stops
+      this.keepPlaying = false;
+      setTimeout(() => { this.playChord(frequencies); }, 50);
     }
+}
+  
+// Usage
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const reverb = createReverb(audioContext);
+const chordPlayer = new ChordPlayer(audioContext, reverb);
+const pentatonicPlayer = new PentatonicPlayer(audioContext, reverb);
+  
+function createReverb(audioContext) {
+  const reverb = audioContext.createConvolver();
+  const sampleRate = audioContext.sampleRate;
+  const length = sampleRate * 0.2;
+  const impulse = audioContext.createBuffer(2, length, sampleRate);
+  for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
+      const impulseChannelData = impulse.getChannelData(channel);
+      for (let i = 0; i < length; i++) {
+          impulseChannelData[i] = (Math.random() * 2 - 1) * 0.2;
+      }
   }
-  
-  
-  // Usage
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  const reverb = createReverb(audioContext);
-  const chordPlayer = new ChordPlayer(audioContext, reverb);
-  const pentatonicPlayer = new PentatonicPlayer(audioContext, reverb);
-  
-  function createReverb(audioContext) {
-    const reverb = audioContext.createConvolver();
-    const sampleRate = audioContext.sampleRate;
-    const length = sampleRate * 0.2; // 2 seconds of reverb
-    const impulse = audioContext.createBuffer(2, length, sampleRate);
-    
-    for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
-        const impulseChannelData = impulse.getChannelData(channel);
-        for (let i = 0; i < length; i++) {
-            // Fill the buffer with white noise
-            impulseChannelData[i] = (Math.random() * 2 - 1) * 0.2; // Lower volume of reverb
-        }
-    }
-    
-    reverb.buffer = impulse;
-    return reverb;
+  reverb.buffer = impulse;
+  return reverb;
 }
 
-
-// let colors = [
-//     [0, 0, 0], [25, 0, 0], [50, 0, 0], [75, 0, 0], [100, 0, 0],
-//     [125, 0, 0], [150, 25, 0], [175, 50, 0], [200, 75, 0], [225, 100, 0],
-//     [255, 125, 0], [255, 150, 25], [255, 175, 50], [255, 200, 75], [255, 225, 100],
-//     [255, 255, 125], [225, 255, 150], [200, 255, 175], [175, 255, 200], [150, 255, 225],
-//     [125, 255, 255], [100, 225, 255], [75, 200, 255], [50, 175, 255], [25, 150, 255],
-//     [0, 125, 255], [0, 100, 225], [0, 75, 200], [0, 50, 175], [0, 25, 150],
-//     [0, 0, 125], [25, 0, 100], [50, 0, 75], [75, 0, 50], [100, 0, 25],
-//     [125, 125, 125], [150, 150, 150], [175, 175, 175], [200, 200, 200], [225, 225, 225],
-//     [255, 255, 255], [255, 230, 230], [255, 205, 205], [255, 180, 180], [255, 155, 155],
-//     [255, 130, 130], [255, 105, 105], [255, 80, 80], [255, 55, 55], [255, 30, 30]
-// ]
-
-// rearranged version with darker colors first, this is an array of 50 colors to be used together with the chords_in_key array of 50 chords
-// let colors = [
-//     [0, 0, 0], [25, 0, 0], [0, 0, 125], [50, 0, 0], [25, 0, 100], [75, 0, 0], 
-//     [50, 0, 75], [75, 0, 50], [100, 0, 0], [100, 0, 25], [125, 0, 0], [0, 25, 150], 
-//     [0, 50, 175], [150, 25, 0], [0, 75, 200], [175, 50, 0], [0, 100, 225], 
-//     [200, 75, 0], [255, 55, 55], [0, 125, 255], [255, 80, 80], [225, 100, 0], [125, 125, 125], 
-//     [25, 150, 255], [255, 105, 105], [255, 125, 0], [150, 150, 150], [50, 175, 255], [255, 130, 130], 
-//     [255, 150, 25], [175, 175, 175], [255, 155, 155], [75, 200, 255], [255, 175, 50], [255, 180, 180], 
-//     [200, 200, 200], [100, 225, 255], [255, 200, 75], [255, 205, 205], [255, 225, 100], [225, 225, 225], 
-//     [125, 255, 255], [150, 255, 225], [175, 255, 200], [255, 230, 230], [200, 255, 175], [225, 255, 150], 
-//     [255, 255, 125], [255, 30, 30], [255, 255, 255]
-// ];
-
-// version with 60 color values.
 let colors = [
     [208, 72, 154], [236, 24, 121], [236, 28, 35], [250, 164, 23], [241, 235, 32], [154, 201, 59], [113, 193, 82], [111, 197, 164], [59, 184, 235], [67, 111, 182], [90, 80, 162], [134, 80, 160],
     [214, 111, 171], [237, 95, 141], [240, 90, 65], [251, 181, 75], [244, 235, 98], [173, 211, 96], [141, 199, 116], [136, 209, 181], [109, 192, 236], [101, 133, 193], [117, 105, 174], [154, 108, 177],
@@ -707,50 +789,17 @@ let colors = [
     [230, 179, 209], [247, 174, 193], [248, 168, 141], [255, 215, 161], [249, 244, 176], [212, 228, 174], [196, 225, 181], [196, 228, 213], [183, 221, 244], [169, 182, 220], [175, 167, 210], [196, 171, 211],
     [241, 214, 232], [250, 213, 221], [253, 210, 191], [254, 234, 204], [252, 249, 215], [231, 241, 212], [225, 239, 216], [226, 240, 232], [220, 236, 250], [209, 214, 236], [209, 206, 233], [222, 210, 229]
   ];
-
 colors = evenlyTrimArray(colors, 60);
 
-// this is an array of 20 colors to be used together with the pentatonic_in_key array of 20 notes
 let pentatonicColors = [
-    [0, 0, 0],
-    [25, 0, 0],
-    [50, 0, 0],
-    [75, 0, 50],
-    [0, 25, 150],
-    [175, 50, 0],
-    [0, 125, 255],
-    [255, 80, 80],
-    [50, 175, 255],
-    [255, 150, 25],
-    [75, 200, 255],
-    [255, 175, 50],
-    [100, 225, 255],
-    [255, 200, 75],
-    [255, 225, 100],
-    [150, 255, 225],
-    [255, 230, 230],
-    [200, 255, 175],
-    [255, 255, 125],
-    [255, 255, 255]
+    [0, 0, 0], [25, 0, 0], [50, 0, 0], [75, 0, 50], [0, 25, 150], [175, 50, 0], [0, 125, 255], [255, 80, 80], [50, 175, 255], [255, 150, 25],
+    [75, 200, 255], [255, 175, 50], [100, 225, 255], [255, 200, 75], [255, 225, 100], [150, 255, 225], [255, 230, 230], [200, 255, 175], [255, 255, 125], [255, 255, 255]
 ];
 
 let circleOfFifths = [
-    [255, 0, 0],
-    [255, 165, 0],
-    [255, 255, 0],
-    [0, 255, 0],
-    [0, 255, 255],
-    [0, 0, 255],
-    [128, 0, 128],
-    [255, 192, 203],
-    [255, 20, 147],
-    [147, 112, 219],
-    [75, 0, 130],
-    [72, 61, 139],
-    [47, 79, 79],
-    [70, 130, 180]
+    [255, 0, 0], [255, 165, 0], [255, 255, 0], [0, 255, 0], [0, 255, 255], [0, 0, 255], [128, 0, 128],
+    [255, 192, 203], [255, 20, 147], [147, 112, 219], [75, 0, 130], [72, 61, 139], [47, 79, 79], [70, 130, 180]
 ];
-
 
 // Function to calculate Euclidean distance between two RGB values
 function rgbDistance(rgb1, rgb2) {
@@ -773,16 +822,8 @@ function findMostSimilarRGB(targetRGB, colorArray) {
             closestColor = colorArray[i];
         }
     }
-
     return {'closestColor': closestColor, colorIndex: colorArray.indexOf(closestColor)};
 }
-
-
-
-
-
-// Assuming `notesMap` is already populated with your JSON data
-// For example, you might have fetched it like so:
 
 let notesInKey = {
     "major": {
@@ -808,20 +849,17 @@ let notesInKey = {
     'F': ['F', 'G', 'G#', 'A#', 'C', 'C#', 'D#'],
     'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E'],
     'G': ['G', 'A', 'A#', 'C', 'D', 'D#', 'F'],
-    'G#': ['G#', 'A#', 'B', 'C#', 'D#', 'E', 'F#'],
-    'A': ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
-    'A#': ['A#', 'C', 'C#', 'D#', 'F', 'F#', 'G#'],
-    'B': ['B', 'C#', 'D', 'E', 'F#', 'G', 'A']
+    'G#': ['G#', 'B', 'C#', 'D#', 'F#'],
+    'A': ['A', 'C', 'D', 'E', 'G'],
+    'A#': ['A#', 'C#', 'D#', 'F', 'G#'],
+    'B': ['B', 'D', 'E', 'F#', 'A']
     }
 }
-
 
 function getAllChords(notesMap) {
     const chords = [];
     notesMap.forEach((note, index) => {
-        if (note.octave < 2 || note.octave > 6) {
-            return;
-        }
+        if (note.octave < 2 || note.octave > 6) return;
         chords.push({key: index, quality: 'major', frequencies: note.majorFrequencies, note: note.note, noteExact: note.note_exact, octave: note.octave});
     });
     return chords;
@@ -830,9 +868,7 @@ function getAllChords(notesMap) {
 function getChordsInKey(key, quality, notesMap) {
     const chords = [];
     notesMap.forEach((note, index) => {
-        if (note.octave < 2 || note.octave > 7) {
-            return;
-        }
+        if (note.octave < 2 || note.octave > 7) return;
         if (notesInKey[quality][key].includes(note.note)) {
             const noteIndex = notesInKey[quality][key].indexOf(note.note);
             if (quality === "major") {
@@ -854,30 +890,20 @@ function getChordsInKey(key, quality, notesMap) {
             }
         }
     });
-    //console.log(chords.length, ' chords created in key ', key);
     return chords;
 }
 
 function trimArray(arr, outputLength) {
-    
-    let removeStart = true; // Flag to alternate between removing from start and end
-
+    let removeStart = true;
     while (arr.length > outputLength) {
-        if (removeStart) {
-            arr.shift(); // Remove from start
-        } else {
-            arr.pop(); // Remove from end
-        }
-        removeStart = !removeStart; // Toggle flag
+        if (removeStart) arr.shift(); else arr.pop();
+        removeStart = !removeStart;
     }
-
     return arr;
 }
 
 function evenlyTrimArray(arr, n) {
-    if (arr.length <= n) {
-        return arr;
-    }
+    if (arr.length <= n) return arr;
     let arrayMiddle = [...arr];
     arrayMiddle.shift();
     arrayMiddle.pop();
@@ -897,7 +923,6 @@ function evenlyTrimArray(arr, n) {
     trimmedArray.push(arr[arr.length-1]);
     return trimmedArray;
 }
-
 
 let pentatonicKeys = {
     "major": {
@@ -930,7 +955,6 @@ let pentatonicKeys = {
     }
 };
 
-
 function getPentatonicScaleInKey(key, quality, notesMap) {
     const scale = [];
     notesMap.forEach((note, index) => {
@@ -944,20 +968,9 @@ function getPentatonicScaleInKey(key, quality, notesMap) {
 let pentatonic_in_key = getPentatonicScaleInKey('C', 'major', notesMap);
 pentatonic_in_key = trimArray(pentatonic_in_key, 20)
 
-
-
-
-
-
-
-// let preferedKey = prompt('enter the prefered key as a capital letter with sharp sign (if wanted).');
-// let preferedQuality = prompt('enter the prefered quality as either "major" or "minor".');
-// let chords_used = getChordsInKey(preferedKey, preferedQuality, notesMap);
-//let chords_used = getChordsInKey('C', 'major', notesMap);
+// let chords_used = getChordsInKey('C', 'major', notesMap);
 let chords_used = getAllChords(notesMap);
-//console.log('chords_used : ', chords_used)
 chords_used = evenlyTrimArray(chords_used, 60);
-
 
 for (let i in colors) {
     let chordAsString = ''
